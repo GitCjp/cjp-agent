@@ -41,7 +41,7 @@ class LoveAppTest {
     void doChatWithRag() {
         String chatId = UUID.randomUUID().toString();
         String message = "怎样维护婚后夫妻间的亲密关系？";
-        String  response = loveApp.doChatWithRag(message, chatId);
+        String  response = loveApp.doChatWithRagAndPGSQL(message, chatId);
         Assertions.assertNotNull(response);
     }
 

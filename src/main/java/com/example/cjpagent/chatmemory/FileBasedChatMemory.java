@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FileBasedChatMemory implements ChatMemory {
 
@@ -37,21 +40,21 @@ public class FileBasedChatMemory implements ChatMemory {
     }
 
     @Override
-    public void add(String conversationId, Message message) {
+    public synchronized void add(String conversationId, Message message) {
         List<Message> existingMessages = getOrCreateConversationFile(conversationId);
         existingMessages.add(message);
         saveConversation(conversationId, existingMessages);
     }
 
     @Override
-    public void add(String conversationId, List<Message> messages) {
+    public synchronized void add(String conversationId, List<Message> messages) {
         List<Message> existingMessages = getOrCreateConversationFile(conversationId);
         existingMessages.addAll(messages);
         saveConversation(conversationId, existingMessages);
     }
 
     @Override
-    public List<Message> get(String conversationId, int lastN) {
+    public synchronized List<Message> get(String conversationId, int lastN) {
        List<Message> messages = getOrCreateConversationFile(conversationId);
        if (messages.size() <= lastN) {
            return messages;
@@ -61,11 +64,32 @@ public class FileBasedChatMemory implements ChatMemory {
     }
 
     @Override
-    public void clear(String conversationId) {
+    public synchronized void clear(String conversationId) {
         File conversationFile = getConversationFile(conversationId);
         if (conversationFile.exists()) {
             conversationFile.delete();
         }
+    }
+
+    public synchronized List<String> listConversationIds() {
+        File baseDirFile = new File(BASE_DIR);
+        File[] files = baseDirFile.listFiles((dir, name) -> name.endsWith(".kryo"));
+        if (files == null || files.length == 0) {
+            return List.of();
+        }
+        return Arrays.stream(files)
+                .sorted(Comparator.comparingLong(File::lastModified).reversed())
+                .map(file -> file.getName().replaceFirst("\\.kryo$", ""))
+                .collect(Collectors.toList());
+    }
+
+    public synchronized long getConversationLastModified(String conversationId) {
+        File conversationFile = getConversationFile(conversationId);
+        return conversationFile.exists() ? conversationFile.lastModified() : 0L;
+    }
+
+    public synchronized List<Message> getAll(String conversationId) {
+        return getOrCreateConversationFile(conversationId);
     }
 
     /**
@@ -101,8 +125,7 @@ public class FileBasedChatMemory implements ChatMemory {
         File conversationFile = getConversationFile(conversationId);
         List<Message> messages = new ArrayList<>();
         if (conversationFile.exists()) {
-            try {
-                Input input = new Input(new FileInputStream(conversationFile));
+            try (Input input = new Input(new FileInputStream(conversationFile))) {
                 messages = kryo.readObject(input, ArrayList.class);
             } catch (Exception e) {
                 // 如果文件损坏或读取失败，删除损坏文件并返回空列表，防止死循环和异常

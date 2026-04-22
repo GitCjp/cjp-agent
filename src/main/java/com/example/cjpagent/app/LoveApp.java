@@ -2,7 +2,6 @@ package com.example.cjpagent.app;
 
 
 import com.example.cjpagent.advisor.MyloggerAdvisor;
-import com.example.cjpagent.chatmemory.FileBasedChatMemory;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -35,12 +34,7 @@ public class LoveApp {
      * 初始化ChatClient，设置系统提示和聊天记忆顾问。系统提示定义了AI的角色和行为，聊天记忆顾问使用内存存储会话历史，实现连续对话。
      * @param dashscopeChatModel
      */
-    public LoveApp(ChatModel dashscopeChatModel) {
-        //初始化基于文件的聊天记忆
-        String fileDir = System.getProperty("user.dir") + "/tmp/chat_memory";
-
-        ChatMemory chatMemory = new FileBasedChatMemory(fileDir);
-        //ChatMemory chatMemory = new InMemoryChatMemory();
+    public LoveApp(ChatModel dashscopeChatModel, ChatMemory chatMemory) {
         chatClient = ChatClient.builder(dashscopeChatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
@@ -147,6 +141,31 @@ public class LoveApp {
                 .advisors(new MyloggerAdvisor())
                 //基于云端RAG服务的检索增强生成顾问，调用外部API进行相关文档检索，进一步提升AI的回答质量和覆盖范围
                 .advisors(loveAppRagCloudAdvisor)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+    /**
+     * RAG问答接口---基于云端RAG服务的检索增强生成
+     */
+
+    @Resource
+    private  VectorStore pgVectorVectorStore;
+
+    public String doChatWithRagAndPGSQL(String message, String chatId) {
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .user(message)
+                //设置聊天记忆顾问参数，指定会话ID和检索大小，实现连续对话和上下文关联
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                //开启日志记录顾问，记录每次请求和响应的内容
+                .advisors(new MyloggerAdvisor())
+                //基于PGSQL的RAG服务的检索增强生成顾问
+                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
                 .call()
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();

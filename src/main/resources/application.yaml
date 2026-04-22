@@ -3,10 +3,22 @@ spring:
     name: cjp-agent
   ai:
     dashscope:
-      api-key: ${DASHSCOPE_API_KEY:your-api-key}
+      api-key: ${DASHSCOPE_API_KEY:sk-569c61cad76240b0976324d4a1ef7d73}
       chat:
         options:
           model: qwen-plus
+#    vectorstore:
+#      pgvector:
+#        index-type: HNSW
+#        dimensions: 1536
+#        distance-type: COSINE_DISTANCE
+#        max-document-batch-size: 10000
+  datasource:
+    url: jdbc:postgresql://rm-cn-0y84r2meq0002dvo.rwlb.rds.aliyuncs.com:5432/CJP_Agent
+    username: my_user1
+    password: 20041029Cjp!
+
+
 
 server:
   port: 8123

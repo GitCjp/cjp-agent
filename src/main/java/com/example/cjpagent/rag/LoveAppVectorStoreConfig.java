@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * 恋爱大师应用向量存储配置类，负责配置和管理恋爱大师应用的向量存储相关设置。
+ * 本地AI向量存储配置类，负责配置和管理恋爱大师应用的向量存储相关设置。
  */
 @Configuration
 public class LoveAppVectorStoreConfig {
@@ -20,6 +20,7 @@ public class LoveAppVectorStoreConfig {
     @Bean
     VectorStore loveAppVectorStore(EmbeddingModel databaseEmbeddingModel) {
         SimpleVectorStore simpleVectorStore = SimpleVectorStore.builder(databaseEmbeddingModel).build();
+        // 加载文档并添加到向量存储中
         simpleVectorStore.add(loveAppDocumentLoader.loadDocuments());
         return simpleVectorStore;
     }
