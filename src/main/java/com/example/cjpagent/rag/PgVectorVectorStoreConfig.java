@@ -18,6 +18,7 @@ import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexT
  * pgsql的向量存储配置类，负责配置和管理pgsql的向量存储相关设置。
  */
 @Configuration
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "app", name = "use-remote-pg", havingValue = "true")
 public class PgVectorVectorStoreConfig {
 
     @Resource

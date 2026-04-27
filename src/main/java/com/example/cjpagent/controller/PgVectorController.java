@@ -3,6 +3,7 @@ package com.example.cjpagent.controller;
 import com.example.cjpagent.rag.PgVectorService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.ai.document.Document;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/pgvector")
 @CrossOrigin(origins = "http://localhost:3000")
+@ConditionalOnProperty(prefix = "app", name = "use-remote-pg", havingValue = "true")
 /**
  * PG 向量库管理接口：
  * 1. 查看向量库统计

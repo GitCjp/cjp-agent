@@ -2,6 +2,8 @@ package com.example.cjpagent.app;
 
 
 import com.example.cjpagent.advisor.MyloggerAdvisor;
+import com.example.cjpagent.rag.QueryRewriter;
+import com.example.cjpagent.tools.WebSearchTool;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -11,6 +13,8 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
 
@@ -152,10 +156,14 @@ public class LoveApp {
      * RAG问答接口---基于云端RAG服务的检索增强生成
      */
 
-    @Resource
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
     private  VectorStore pgVectorVectorStore;
 
     public String doChatWithRagAndPGSQL(String message, String chatId) {
+        if (pgVectorVectorStore == null) {
+            throw new IllegalStateException("pgVectorVectorStore is not available. Enable remote PG by setting app.use-remote-pg=true and ensure DataSource is configured.");
+        }
+
         ChatResponse chatResponse = chatClient
                 .prompt()
                 .user(message)
@@ -172,5 +180,117 @@ public class LoveApp {
         log.info("content: {}", content);
         return content;
     }
+
+
+    /**
+     * 查询重写器
+     */
+    @Resource
+    private QueryRewriter queryRewriter;
+
+    public String doChatWithRagWithReWrite(String message, String chatId) {
+
+        String rewrittenMessage = queryRewriter.doQueryRewrite(message);
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .user(rewrittenMessage)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        return content;
+    }
+
+    /**
+     * 工具调用聊天接口：启用网页搜索工具，让模型可按需联网检索后再回答。
+     */
+    @Resource
+    private WebSearchTool webSearchTool;
+
+    public String doChatWithWebSearch(String message, String chatId) {
+        String searchResult = webSearchTool.searchWeb(message);
+
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .system("""
+                        你是一个联网检索问答助手。
+                        请严格基于“网页检索结果”作答，不要使用恋爱咨询师开场白，不要让用户先选择感情状态。
+                        输出要求：
+                        1) 先给结论；
+                        2) 再给 3-5 条要点；
+                        3) 最后给“信息来源”（列出检索结果中的链接或标题）。
+                        如果检索结果不足，请明确说“网页结果不足”并给出下一步检索建议。
+                        """)
+                .user("""
+                        用户问题：
+                        %s
+
+                        网页检索结果（JSON 片段）：
+                        %s
+                        """.formatted(message, searchResult))
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .advisors(new MyloggerAdvisor())
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+
+
+
+    @Resource
+    private ToolCallback[] allTools;
+
+     /**
+     * 多工具调用聊天接口：启用多个工具（如网页搜索、文件操作等），让模型可按需调用不同工具获取信息后再回答。
+     */
+    public String doChatWithMultipleTools(String message, String chatId) {
+        ChatResponse chatResponse = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                //开启日志记录顾问，记录每次请求和响应的内容
+                .advisors(new MyloggerAdvisor())
+                .tools(allTools)
+                .call()
+                .chatResponse();
+        String content = chatResponse.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+
+
+
+
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
+
+    /**
+     * MCP聊天接口：在多工具调用的基础上，增加了工具调用的上下文感知能力，让模型能根据对话上下文智能选择和调用工具，提升回答的相关性和准确性。
+     * @param message
+     * @param chatId
+     * @return
+     */
+    public String doChatWithMcp(String message, String chatId) {
+        ChatResponse response = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+
+                .advisors(new MyloggerAdvisor())
+                .tools(toolCallbackProvider)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+
 
 }

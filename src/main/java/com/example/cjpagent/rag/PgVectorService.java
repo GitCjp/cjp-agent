@@ -1,6 +1,7 @@
 package com.example.cjpagent.rag;
 
 import jakarta.annotation.Resource;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
@@ -12,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
+@ConditionalOnProperty(prefix = "app", name = "use-remote-pg", havingValue = "true")
 public class PgVectorService {
 
     @Resource(name = "pgVectorVectorStore")

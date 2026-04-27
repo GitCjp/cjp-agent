@@ -199,6 +199,31 @@ public class ChatController {
     }
 
     /**
+     * 工具调用聊天接口（网页搜索）：
+     * AI 可按需调用 WebSearchTool 实时检索网页信息后回答。
+     */
+    @PostMapping("/chat/tools/web")
+    public ResponseEntity<?> chatWithWebSearchTool(@RequestBody ChatRequest request) {
+        try {
+            String chatId = request.getChatId();
+            String message = request.getMessage();
+
+            if (chatId == null || chatId.trim().isEmpty()) {
+                chatId = UUID.randomUUID().toString();
+            }
+
+            String response = loveApp.doChatWithWebSearch(message, chatId);
+            ChatResponse chatResponse = new ChatResponse(response, chatId);
+            log.info("Web search tool chat response: {}", response);
+            return ResponseEntity.ok(chatResponse);
+        } catch (Exception e) {
+            log.error("Error in web-search tool chat endpoint", e);
+            return ResponseEntity.status(500)
+                    .body(new ErrorResponse("Internal server error: " + e.getMessage()));
+        }
+    }
+
+    /**
      * 通用聊天请求：
      * message 为本次输入；chatId 为空时后端自动生成会话 ID。
      */

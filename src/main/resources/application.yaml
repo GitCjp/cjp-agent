@@ -3,10 +3,14 @@ spring:
     name: cjp-agent
   ai:
     dashscope:
-      api-key: ${DASHSCOPE_API_KEY:sk-569c61cad76240b0976324d4a1ef7d73}
+      api-key: ${DASHSCOPE_API_KEY:}
       chat:
         options:
           model: qwen-plus
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:mcp-servers.json
 #    vectorstore:
 #      pgvector:
 #        index-type: HNSW
@@ -14,11 +18,22 @@ spring:
 #        distance-type: COSINE_DISTANCE
 #        max-document-batch-size: 10000
   datasource:
-    url: jdbc:postgresql://rm-cn-0y84r2meq0002dvo.rwlb.rds.aliyuncs.com:5432/CJP_Agent
-    username: my_user1
-    password: 20041029Cjp!
+    url: ${POSTGRES_URL:}
+    username: ${POSTGRES_USERNAME:}
+    password: ${POSTGRES_PASSWORD:}
 
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
 
+# 临时禁用远程 Postgres 连接：
+# 当你不想让应用自动尝试连接远程 PG（例如没钱或网络不可达），
+# 将下面的 app.use-remote-pg 设置为 false（默认），并在必要时改为 true。
+app:
+  use-remote-pg: false
+
+# 为了在不开启远程 PG 时避免 Spring Boot 自动创建 DataSource（尝试连接失败导致启动失败），
+# 这里默认把 DataSource 自动配置排除；当你启用远程 PG（app.use-remote-pg=true）时，
+# 请删除或注释下面这行，或在启动时传入 --spring.autoconfigure.exclude="" 覆盖。
 
 server:
   port: 8123
@@ -45,3 +60,5 @@ knife4j:
 logging:
     level:
         com.example.cjpagent: debug
+search-api:
+  api-key: ${SEARCH_API_KEY:}
