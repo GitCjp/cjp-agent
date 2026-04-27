@@ -30,11 +30,13 @@
         <java.version>21</java.version>
     </properties>
     <dependencies>
+        <!-- Spring Web 基础能力：提供 REST 接口与内嵌 Web 容器 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
+        <!-- Hutool 工具包：常用文件、字符串、集合等工具方法 -->
         <dependency>
             <groupId>cn.hutool</groupId>
             <artifactId>hutool-all</artifactId>
@@ -47,12 +49,14 @@
             </exclusions>
         </dependency>
 
+        <!-- Knife4j 文档增强：提供更易用的 OpenAPI UI 页面 -->
         <dependency>
             <groupId>com.github.xiaoymin</groupId>
             <artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
             <version>4.4.0</version>
         </dependency>
 
+        <!-- Lombok：减少 Java 样板代码 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -60,12 +64,14 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Spring Boot 测试套件：JUnit、Mock 等测试支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
 
+        <!-- DashScope 官方 SDK：调用通义模型与相关 API -->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dashscope-sdk-java</artifactId>
@@ -78,30 +84,37 @@
             </exclusions>
         </dependency>
 
+        <!-- OpenAI Java SDK：调用 OpenAI 系列接口 -->
         <dependency>
             <groupId>com.openai</groupId>
             <artifactId>openai-java</artifactId>
             <version>4.31.0</version>
         </dependency>
+
 <!--        支持结构化输出-->
+        <!-- JSON Schema 生成器：用于结构化输出的模式定义 -->
         <dependency>
             <groupId>com.github.victools</groupId>
             <artifactId>jsonschema-generator</artifactId>
             <version>4.38.0</version>
         </dependency>
+
 <!--        Kryo 序列化库-->
+        <!-- Kryo：高性能对象序列化 -->
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo</artifactId>
             <version>5.6.2</version>
         </dependency>
 
+        <!-- Spring AI Markdown Reader：读取并解析 Markdown 文档 -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-markdown-document-reader</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
 
+        <!-- Jsoup：HTML 解析与网页内容提取 -->
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
@@ -109,6 +122,7 @@
         </dependency>
 
 
+        <!-- Spring AI Alibaba Starter：Spring AI 与阿里云 AI 生态集成 -->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
             <artifactId>spring-ai-alibaba-starter</artifactId>
@@ -116,6 +130,7 @@
         </dependency>
 
 
+        <!-- LangChain4j DashScope 扩展：补充链式工具能力 -->
         <dependency>
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j-community-dashscope</artifactId>
@@ -128,21 +143,28 @@
 <!--            <version>1.0.0-M7</version>-->
 <!--        </dependency>-->
 
+        <!-- Spring JDBC：JdbcTemplate 与数据库访问能力 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
+
+        <!-- PostgreSQL JDBC 驱动 -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Spring AI PgVector Store：向量存储接入 PostgreSQL -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pgvector-store</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
+
 <!--    pdfbox 依赖-->
+        <!-- iText Core：PDF 核心处理能力 -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>itext-core</artifactId>
@@ -150,6 +172,7 @@
             <type>pom</type>
         </dependency>
 
+        <!-- iText 亚洲字体包（测试范围） -->
         <dependency>
             <groupId>com.itextpdf</groupId>
             <artifactId>font-asian</artifactId>
@@ -158,11 +181,13 @@
         </dependency>
 
 
+        <!-- Spring AI MCP Client：MCP 客户端能力接入 -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
             <version>1.0.0-M6</version>
         </dependency>
+    
 
     </dependencies>
 
